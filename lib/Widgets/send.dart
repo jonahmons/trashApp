@@ -1,9 +1,8 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:geolocator/geolocator.dart';
-
-import 'camera.dart';
+import 'package:trashapp/Widgets/start.dart';
+import 'package:trashapp/helper/contacts.dart';
 
 class SendPicture extends StatefulWidget {
   String imagePath;
@@ -22,32 +21,47 @@ class _SendPictureState extends State<SendPicture> {
   String emailAddress;
   String dropdownValue = 'McDonalds';
 
-  _SendPictureState(this.imagePath, this.position);
+  _SendPictureState(this.imagePath, Position position) {
+    if (position == null) {
+      position = new Position(
+        latitude: 200,
+        longitude: 200,
+      );
+    } else {
+      this.position = position;
+    }
+    print(position);
+    //if (position)position.
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: Text('Send the picture')),
-        body: Container(
-          child: Column(children: <Widget>[
-            Text("Bild: " + imagePath),
-            Text("Wer ist der Verursacher?"),
+        body: Center(
+          child: Container(
+              child: Column(children: <Widget>[
+            SizedBox(height: 10),
+            Text(
+              "Wer ist der Verursacher?",
+              style: TextStyle(fontSize: 20),
+            ),
+            SizedBox(height: 30),
             DropdownButton<String>(
               value: dropdownValue,
               icon: Icon(Icons.arrow_downward),
               iconSize: 24,
               elevation: 16,
-              style: TextStyle(color: Colors.deepPurple),
+              style: TextStyle(color: Colors.white),
               underline: Container(
                 height: 2,
-                color: Colors.deepPurpleAccent,
+                color: Colors.white,
               ),
               onChanged: (String newValue) {
                 setState(() {
                   dropdownValue = newValue;
                 });
               },
-              // 'McDonalds', 'Burger King', 'Nordsee', 'Subway','Pizza Hut', 'Kentucky Fried Chicken'
               items: <String>[
                 'McDonalds',
                 'Burger King',
@@ -62,12 +76,13 @@ class _SendPictureState extends State<SendPicture> {
                 );
               }).toList(),
             ),
+            SizedBox(height: 10),
             RaisedButton(
               onPressed: sendMail,
               child: const Text('Send', style: TextStyle(fontSize: 20)),
             ),
             const SizedBox(height: 30),
-          ]),
+          ])),
         ));
   }
 
@@ -75,17 +90,29 @@ class _SendPictureState extends State<SendPicture> {
     var lat = position.latitude;
     var long = position.longitude;
 
+    Widget okButton = FlatButton(
+      child: Text("OK"),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Start(),
+          ),
+        );
+      },
+    );
     var emailText = '''Sehr geehrte Damen und Herren, 
     
     wie Sie dem mitgesendeten Bild entnehmen können, haben ich leider Müll ihrers Unternehmens gefunden.
     Es wäre sehr schön wenn Sie diesen beseitigen könnten.
     
-    Genaue Position Lat:$lat Long: $long
+    Genaue Fundstelle:
+    Lat:$lat Long: $long
     
     Mit freundlichen Grüßen''';
 
     int count = 0;
-    getEmail();
+    emailAddress = contacts[this.dropdownValue];
     final Email email = Email(
       body: emailText,
       subject: 'Unrat',
@@ -95,54 +122,18 @@ class _SendPictureState extends State<SendPicture> {
     );
 
     await FlutterEmailSender.send(email);
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return new AlertDialog(
+            title: Text("Trash reported"),
+            content: Text("Thanks for report"),
+            actions: [
+              okButton,
+            ],
+          );
+        });
 
-    Navigator.of(context).popUntil((_) => count++ >= 2);
-  }
-
-  getEmail() {
-    switch (this.dropdownValue) {
-      case "McDonalds":
-        {
-          emailAddress = "jonah.mons@mons-bonn.de";
-        }
-        break;
-      case "Burger King":
-        {
-          emailAddress = "BurgerKing@test.de";
-        }
-        break;
-      case "Nordsee":
-        {
-          emailAddress = "Nordsee@test.de";
-        }
-        break;
-      case "Subway":
-        {
-          emailAddress = "Subway@test.de";
-        }
-        break;
-      case "Pizza Hut":
-        {
-          emailAddress = "PizzaHut@test.de";
-        }
-        break;
-      case "Kentucky Fried Chicken":
-        {
-          emailAddress = "Kentucky Fried Chicken";
-        }
-        break;
-      default:
-        {
-          print("Invalid choice");
-        }
-        break;
-    }
-  }
-
-  void makeRoutePage({BuildContext context, Widget pageRef}) {
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => pageRef),
-        (Route<dynamic> route) => false);
+    //Navigator.of(context).popUntil((_) => count++ >= 2);
   }
 }
