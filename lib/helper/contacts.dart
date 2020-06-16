@@ -8,10 +8,10 @@ List<String> contacts1 = [
 ];
 
 Map contacts = {
-  'McDonalds': 'jonah.mons@mons-bonn.de',
-  'Burger King': 'BurgerKing@test.de',
-  'Nordsee': 'Nordsee@test.de',
-  'Subway': 'Subway@test.de',
-  'Pizza Hut': 'PizzaHut@test.de',
-  'Kentucky Fried Chicken': 'kfc@test.de'
+  'McDonalds': 'service@mcdonalds.de',
+  'Burger King': 'kundenservice@burgerking.de',
+  'Nordsee': 'nordsee@nordsee.de',
+  'Subway': 'info@subway-germany.de',
+  'Pizza Hut': 'PizzaHut.Gaesteservice@AmRest.eu',
+  'Kentucky Fried Chicken': 'expansion@kfc.de'
 };

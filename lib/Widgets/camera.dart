@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:android_intent/android_intent.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -25,6 +26,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
   Position position;
+  GeolocationStatus geolocationStatus;
+  var geolocator;
 
   @override
   void initState() {
@@ -36,6 +39,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       widget.camera,
       // Define the resolution to use.
       ResolutionPreset.medium,
+      enableAudio: false,
     );
 
     // Next, initialize the controller. This returns a Future.
@@ -75,6 +79,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           // Take the Picture in a try / catch block. If anything goes wrong,
           // catch the error.
           try {
+            _checkGps();
+            geolocator = Geolocator();
             // Ensure that the camera is initialized.
             await _initializeControllerFuture;
 
@@ -89,8 +95,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
             // Attempt to take a picture and log where it's been saved.
             await _controller.takePicture(path);
-            position = await Geolocator()
-                .getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
+            position = await geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.high);
 
             // If the picture was taken, display it on a new screen.
             Navigator.push(
@@ -107,6 +113,35 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         },
       ),
     );
+  }
+
+  Future _checkGps() async {
+    if (!(await Geolocator().isLocationServiceEnabled())) {
+      if (Theme.of(context).platform == TargetPlatform.android) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Can't get current location"),
+              content:
+                  const Text('Please make sure you enable GPS and try again'),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('Ok'),
+                  onPressed: () {
+                    final AndroidIntent intent = AndroidIntent(
+                        action: 'android.settings.LOCATION_SOURCE_SETTINGS');
+
+                    intent.launch();
+                    Navigator.of(context, rootNavigator: true).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
   }
 }
 
